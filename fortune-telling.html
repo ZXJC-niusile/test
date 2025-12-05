@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>超级算命师</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Microsoft YaHei', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            height: 100vh;
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            user-select: none;
+            -webkit-user-select: none;
+            touch-action: none;
+        }
+
+        .container {
+            text-align: center;
+            color: white;
+        }
+
+        .title {
+            font-size: 2.5rem;
+            margin-bottom: 2rem;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+            animation: glow 2s ease-in-out infinite alternate;
+        }
+
+        @keyframes glow {
+            from { text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5), 0 0 10px rgba(255, 255, 255, 0.3); }
+            to { text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5), 0 0 20px rgba(255, 255, 255, 0.6); }
+        }
+
+        .fortune-ball {
+            width: 200px;
+            height: 200px;
+            background: radial-gradient(circle at 30% 30%, #ffffff, #4a5568);
+            border-radius: 50%;
+            margin: 0 auto 2rem;
+            position: relative;
+            cursor: pointer;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+            transition: transform 0.3s ease;
+        }
+
+        .fortune-ball:hover {
+            transform: scale(1.05);
+        }
+
+        .fortune-ball.active {
+            animation: shake 0.5s ease-in-out infinite;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0) rotate(0deg); }
+            25% { transform: translateX(-10px) rotate(-5deg); }
+            75% { transform: translateX(10px) rotate(5deg); }
+        }
+
+        .fortune-eye {
+            width: 80px;
+            height: 80px;
+            background: #2d3748;
+            border-radius: 50%;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 2rem;
+        }
+
+        .instructions {
+            font-size: 1.2rem;
+            opacity: 0.9;
+            margin-bottom: 1rem;
+        }
+
+        .progress-bar {
+            width: 300px;
+            height: 8px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 4px;
+            margin: 0 auto;
+            overflow: hidden;
+            display: none;
+        }
+
+        .progress-bar.active {
+            display: block;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #ffd89b 0%, #19547b 100%);
+            border-radius: 4px;
+            width: 0%;
+            transition: width 0.1s ease;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 1000;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .modal-content {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            padding: 2rem;
+            border-radius: 20px;
+            text-align: center;
+            max-width: 80%;
+            animation: slideIn 0.5s ease;
+        }
+
+        @keyframes slideIn {
+            from { transform: translate(-50%, -60%); opacity: 0; }
+            to { transform: translate(-50%, -50%); opacity: 1; }
+        }
+
+        .fortune-result {
+            color: #2d3748;
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+            font-weight: bold;
+        }
+
+        .fortune-detail {
+            color: #4a5568;
+            font-size: 1.1rem;
+            margin-bottom: 1.5rem;
+            line-height: 1.6;
+        }
+
+        .close-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 0.8rem 2rem;
+            border-radius: 25px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: transform 0.2s ease;
+        }
+
+        .close-btn:hover {
+            transform: scale(1.05);
+        }
+
+        .mystical-effect {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            top: 0;
+            left: 0;
+        }
+
+        .star {
+            position: absolute;
+            color: yellow;
+            font-size: 1.5rem;
+            animation: twinkle 1s ease-in-out infinite;
+        }
+
+        @keyframes twinkle {
+            0%, 100% { opacity: 0; transform: scale(0.5); }
+            50% { opacity: 1; transform: scale(1); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 class="title">🔮 贱命算命师 🔮</h1>
+
+        <div class="fortune-ball" id="fortuneBall">
+            <div class="fortune-eye">👁</div>
+        </div>
+
+        <div class="instructions">长按水晶球算命</div>
+
+        <div class="progress-bar" id="progressBar">
+            <div class="progress-fill" id="progressFill"></div>
+        </div>
+    </div>
+
+    <div class="mystical-effect" id="mysticalEffect"></div>
+
+    <div class="modal" id="resultModal">
+        <div class="modal-content">
+            <div class="fortune-result" id="fortuneResult"></div>
+            <div class="fortune-detail" id="fortuneDetail"></div>
+            <button class="close-btn" onclick="closeModal()">再来一卦</button>
+        </div>
+    </div>
+
+    <script>
+        const fortunes = [
+            {
+                title: "💩 屎上加霜",
+                detail: "今日运势：出门踩狗屎，喝水塞牙缝，走路掉进坑里。建议：待在家里，给手机贴个钢化膜。"
+            },
+            {
+                title: "🤡 跳梁小丑",
+                detail: "事业运势：努力工作老板看不见，摸鱼被抓住，升职无望，加薪靠嘴。建议：准备辞职信，或者准备厚脸皮。"
+            },
+            {
+                title: "🦗 孤寡孤寡",
+                detail: "爱情运势：单身继续单身，恋爱准备分手，已婚可能离异。建议：养只宠物，至少不会背叛你。"
+            },
+            {
+                title: "🐌 慢性死亡",
+                detail: "健康运势：从头到脚各种不舒服，检查指标正常但就是难受。建议：多喝热水，毕竟多喝热水解决不了任何问题。"
+            },
+            {
+                title: "🎭 假面人生",
+                detail: "人际关系：朋友表面笑嘻嘻，背后说你坏话，同事给你挖坑，亲戚问你工资。建议：学会假笑，成为一个合格的成年人。"
+            },
+            {
+                title: "🎰 赌神附体（反面）",
+                detail: "财运运势：买什么跌什么，卖什么涨什么，理财亏本，投资失败。建议：把钱存银行，虽然利息低但至少不会亏太多。"
+            },
+            {
+                title: "🐢 龟速人生",
+                detail: "学习运势：看书看不懂，上课听不进，考试全靠蒙，论文全靠抄。建议：考虑转专业，或者降低期望。"
+            },
+            {
+                title: "🕳️ 底部有洞",
+                detail: "综合运势：万事不顺，喝水都塞牙，放屁都砸脚。建议：认命吧，反正明天也不会更好。"
+            }
+        ];
+
+        let pressTimer;
+        let isPressing = false;
+        let progressInterval;
+        let currentProgress = 0;
+
+        const fortuneBall = document.getElementById('fortuneBall');
+        const progressBar = document.getElementById('progressBar');
+        const progressFill = document.getElementById('progressFill');
+        const resultModal = document.getElementById('resultModal');
+        const fortuneResult = document.getElementById('fortuneResult');
+        const fortuneDetail = document.getElementById('fortuneDetail');
+        const mysticalEffect = document.getElementById('mysticalEffect');
+
+        // 创建星星效果
+        function createStars() {
+            mysticalEffect.innerHTML = '';
+            for (let i = 0; i < 20; i++) {
+                const star = document.createElement('div');
+                star.className = 'star';
+                star.textContent = '✨';
+                star.style.left = Math.random() * 100 + '%';
+                star.style.top = Math.random() * 100 + '%';
+                star.style.animationDelay = Math.random() * 2 + 's';
+                mysticalEffect.appendChild(star);
+            }
+        }
+
+        function startPressing() {
+            if (isPressing) return;
+            isPressing = true;
+            currentProgress = 0;
+
+            fortuneBall.classList.add('active');
+            progressBar.classList.add('active');
+            createStars();
+
+            pressTimer = setTimeout(() => {
+                endPressing();
+                showFortune();
+            }, 3000);
+
+            progressInterval = setInterval(() => {
+                currentProgress += 3.33;
+                if (currentProgress > 100) currentProgress = 100;
+                progressFill.style.width = currentProgress + '%';
+            }, 100);
+        }
+
+        function endPressing() {
+            if (!isPressing) return;
+            isPressing = false;
+
+            clearTimeout(pressTimer);
+            clearInterval(progressInterval);
+
+            fortuneBall.classList.remove('active');
+            progressBar.classList.remove('active');
+            progressFill.style.width = '0%';
+            mysticalEffect.innerHTML = '';
+        }
+
+        function showFortune() {
+            const randomFortune = fortunes[Math.floor(Math.random() * fortunes.length)];
+            fortuneResult.textContent = randomFortune.title;
+            fortuneDetail.textContent = randomFortune.detail;
+            resultModal.style.display = 'block';
+        }
+
+        function closeModal() {
+            resultModal.style.display = 'none';
+        }
+
+        // 鼠标事件
+        fortuneBall.addEventListener('mousedown', startPressing);
+        fortuneBall.addEventListener('mouseup', endPressing);
+        fortuneBall.addEventListener('mouseleave', endPressing);
+
+        // 触摸事件（移动端）
+        fortuneBall.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            startPressing();
+        });
+
+        fortuneBall.addEventListener('touchend', (e) => {
+            e.preventDefault();
+            endPressing();
+        });
+
+        fortuneBall.addEventListener('touchcancel', (e) => {
+            e.preventDefault();
+            endPressing();
+        });
+
+        // 防止页面滚动
+        document.addEventListener('touchmove', (e) => {
+            if (isPressing) {
+                e.preventDefault();
+            }
+        }, { passive: false });
+
+        // 点击modal外部关闭
+        resultModal.addEventListener('click', (e) => {
+            if (e.target === resultModal) {
+                closeModal();
+            }
+        });
+    </script>
+</body>
+</html>
